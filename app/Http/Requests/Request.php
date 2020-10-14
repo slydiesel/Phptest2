@@ -7,6 +7,14 @@ use Illuminate\Http\Request as LarryRequest;
 
 class Request extends LarryRequest
 {
+    /**
+     * container for rules.
+     */
+    protected $with = [];
+
+    /**
+     * Ensures a user is retrieved
+     */
     public function user(){
         $user = Auth::user();
         if(empty($user)){
@@ -15,7 +23,19 @@ class Request extends LarryRequest
         return $user;
     }
 
-    protected $with = [];
+    /**
+     * Throw renderable response.
+     */
+    protected function failedValidation(ValidatorContract $validator){
+
+        foreach($validator->errors() as $key => $value){
+            $response[] = $value;
+        }
+
+        throw new HttpResponseException(response()->json($response,422));
+    }
+
+
     /**
      * Determine if the user is authorized to make this request.
      *
@@ -36,6 +56,10 @@ class Request extends LarryRequest
         return $this->with;
     }
 
+    /**
+     * pass in rules and return instance
+     * gives the ability to chain functions
+     */
     public function with($rules){
         $this->with = $rules;
         return $this;
